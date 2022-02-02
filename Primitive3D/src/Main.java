@@ -14,7 +14,7 @@ import javax.swing.Timer;
 
 @SuppressWarnings("serial")
 public class Main extends JPanel implements KeyListener, ActionListener{
-
+	double buffer=0;
 	double sizex = 1;
 	boolean[] held = new boolean[256];
 	ArrayList<Shape> obj = new ArrayList<Shape>();
@@ -28,6 +28,7 @@ public class Main extends JPanel implements KeyListener, ActionListener{
 	double f=0.5;
 	Quaternion quaternion = new Quaternion();
 	static Vector r= new Vector(600,600,.1);	// Pinhole	
+	
 	Vector p = new Vector(1,0,1);
 	
 	public static void addCords(Vector cords) {
@@ -56,7 +57,7 @@ public class Main extends JPanel implements KeyListener, ActionListener{
 		
 		Timer time = new Timer(10,this);
 		
-		addCords(new Vector(1,0,1));
+		
 		
 		obj.add(new Shape("Triangle",
 		(new Vector(1,0,2)),
@@ -110,26 +111,29 @@ public class Main extends JPanel implements KeyListener, ActionListener{
 			int j ;
 			Vector rotatedProduct;
 			Shape newObj = new Shape();
+			int cords = 3;
 			newObj.color  =obj.get(i).color;
 			newObj.Cords=new Vector[obj.get(i).Cords.length];
 			for (j=0; j < obj.get(i).Cords.length; j++) {
 				rotatedProduct= quaternion.rotate(CPos, obj.get(i).Cords[j], quaternion.degToRadian(-COre.x), quaternion.degToRadian(COre.y));
-
+				
 				newObj.Cords[j]= (rotatedProduct);
 				Vector result = Prespective(rotatedProduct);
+				if(buffer<0 )cords--;
 				xC[j]=  result.x;
 				yC[j]=  result.y;
 				xCi[j]=  (int)result.x;
 				yCi[j]= (int) result.y;
 				g2.setPaint(Color.RED);
 			}
-			g2.setPaint(obj.get(i).color);
 			
+			g2.setPaint(obj.get(i).color);
+			if(cords!=0)
 			screen[0].fillPolygon(xC, yC, newObj, CPos, r, f, sizex);
-
+/*
 			Graphics graph = screen[0].getGraphics();
 			graph.setColor(Color.red);
-			graph.drawPolygon(xCi,yCi, yCi.length);
+			graph.drawPolygon(xCi,yCi, yCi.length);*/
 			
 		}
 
@@ -153,7 +157,7 @@ public class Main extends JPanel implements KeyListener, ActionListener{
 
 
 	}
-	public Vector Prespective(Vector point) {
+	public Vector Prespective(Vector point) {/*
 		//Triangle similarity To solve projection on 2D plane given line
 		//TODO Use Line and Plane Intersection instead of Triangle Simularity to get Pixel
 		double f1= (point.x-CPos.x);
@@ -162,31 +166,28 @@ public class Main extends JPanel implements KeyListener, ActionListener{
 		double b2 = Math.sqrt(f*f + x*x);
 		double b1 = Math.sqrt( f1*f1 +z1*z1 );
 		double y = (b2 *(point.y-CPos.y))/b1; 
+		*/
+		double x,y;
+		buffer = intersect (CPos, new Vector(point.x - CPos.x ,point.y - CPos.y,point.z - CPos.z ) , (new Vector (CPos.x+f, CPos.y , CPos.z)) ,new Vector(1,0,0));
+		//System.out.println(t);
+		x=buffer*(point.z - CPos.z);
+		y=  buffer*(point.y - CPos.y);
+		 
+		if(buffer<0) {
+			x*=-1;
+			y*=-1;
+		}
 		x=((x/sizex)*r.x)+r.x/2;
 		y=((y/sizex)*r.y)+r.y/2;
 		y= r.y - y;// Inverts it because java draws top to down not bottom up like a graph
 		
+		return (new Vector(x,y,0));//*/
+		//*/
 		
-		return (new Vector(x,y,0));
-	}
-	Vector intersect(Vector p , Vector v , Vector n , Vector d) // point , vector , plane point , direction
-	{
-		
-		
-		
-	    // dot products
-	    double dot1 = d.dot(v);             // a*Vx + b*Vy + c*Vz
-	    double dot2 = d.dot(p);             // a*x1 + b*y1 + c*z1
-
-	    // if denominator=0, no intersect
-	    /*if(dot1 == 0)
-	        return null; // return NaN point
-*/
-	    // find t = -(a*x1 + b*y1 + c*z1 + d) / (a*Vx + b*Vy + c*Vz)
-	    double t = -(dot2 - n.dot(d)) / dot1;
-	    // find intersection point
-	   return new Vector ( p.x+(t* v.x), p.y+(t* v.y), p.z+(t* v.z));
-	}
+		//return experimental(new Vector(0,globalCamera.y + PixelPos3D.y,globalCamera.z + PixelPos3D.z ), obj.Cords[0] , obj.getNormal()); //Doesn't work (please look at comment on the function)
+		//return new Vector(CPos.x + t*(point.x - CPos.x) ,);
+}
+	
 	@Override
 	public void keyTyped(KeyEvent e) {
 		
@@ -207,6 +208,10 @@ public class Main extends JPanel implements KeyListener, ActionListener{
 			}
 
 		}
+	}
+	double intersect(Vector p , Vector v , Vector n , Vector d) // point , vector , plane point , direction (ikr why did this dumbass place n as the point and not the normal. Apparently this dumbass is me)
+	{
+		return -(d.dot(p) - n.dot(d)) / d.dot(v);// Line plane intersection
 	}
 	@Override
 	public void keyReleased(KeyEvent e) {

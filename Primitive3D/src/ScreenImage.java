@@ -1,29 +1,40 @@
 
 import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Queue;
 public class ScreenImage extends BufferedImage{
 	public double[][] depthMap = new double[1][1];
+
+	public int[] pixelMap = new int[1];
 	DebuggerForDepth debug = new DebuggerForDepth();
 	private Shape globalObj;
 	private Vector globalCamera;
 	private Vector globalR;
 	private double globalF;
 	private double globalSizeX;
-	
+	Graphics graphics = this.getGraphics();
+	final int numth = 2; // # of threads
     ArrayList<data> dataList = new ArrayList<>();
-	
+	ProcessingThread[] threads = new ProcessingThread[numth] ;
 	public ScreenImage(int width, int height) {
-		
+
 		super(width, height, BufferedImage.TYPE_INT_RGB);
 		depthMap = new double[width][height];
+		pixelMap = new int[width*height];
 
+		for(int i = 0 ; i< numth ; i ++) {
+			threads[i] = new ProcessingThread(i, numth , globalR , globalCamera,globalF , globalSizeX );
+		}
+		for(int i = 0 ; i< numth ; i ++) {
+			threads[i] .start();
+		}
 		for(int i = 0 ; i < width ; i ++) {
 			for( int e = 0 ;  e < height ; e++) {
 				depthMap[i][e] =Double.MAX_VALUE;
-				this.setRGB(i, e, rgbToInt(Color.green));
+				setRGB(i, e, rgbToInt(Color.white));
 			}
 		}
 	}
@@ -33,33 +44,23 @@ public class ScreenImage extends BufferedImage{
 
 	}
 	public void processImage() {
-		//long time =System.currentTimeMillis();
-		
-		int numth = 6;
-		ProcessingThread[] threads = new ProcessingThread[numth] ;
 		for(int i = 0 ; i< numth ; i ++) {
-			threads[i] = new ProcessingThread(i, numth , globalR , globalCamera,globalF , globalSizeX );
+			threads[i].init(i, numth , globalR , globalCamera,globalF , globalSizeX );
 			threads[i].giveData(dataList);
 		}
-		for(int i = 0 ; i< numth ; i ++) {
-			threads[i] .start();
-		}
-		boolean[] done = new boolean[numth] ;
-		Arrays.fill(done, true);
+		//long time =System.currentTimeMillis();
 		boolean processing = true;
 		while (processing) {
 			processing = false;
 			
 			for(int i = 0 ; i< numth ; i ++) {
-				if(threads[i].isAlive()) {
+				if(!threads[i].isDone() ) {
 					processing = true;
-					
 				}else {
-					if(done[i]) {
-						done[i]= false;
+					if(!threads[i].outputted &&threads[i].done ) {
 						Queue<outputData> processedData =  threads[i].getDone();
 						//System.out.print(processedData.size() + " " );
-						while(!processedData.isEmpty()) {
+						while(!processedData.isEmpty()) {// Offload processed data
 							outputData dat = processedData.remove();
 							setPixel(dat.x , dat.y ,dat.color, dat.depth );
 							
@@ -68,13 +69,20 @@ public class ScreenImage extends BufferedImage{
 				}
 				
 			}
-		}//System.out.println("  ; "+ (System.currentTimeMillis()-time) + "ms");
+		}
+		imagify();
+		//debug.drawMap(depthMap);
+		
+		//System.out.println("  ; "+ (System.currentTimeMillis()-time) + "ms");
 	}
 	public void reset() {
 		dataList.clear();
+		graphics.fillRect(0, 0, this.getWidth(), this.getHeight());
+		
 		for(int i = 0 ; i < this.getWidth() ; i ++) {
 			for( int e = 0 ;  e < this.getHeight() ; e++) {
 				depthMap[i][e] =Double.MAX_VALUE;
+				
 				this.setRGB(i, e, rgbToInt(Color.white));
 			}
 		}
@@ -86,65 +94,7 @@ public class ScreenImage extends BufferedImage{
 		globalF = f;
 		globalSizeX = sizex;
 		drawTriangle( xCords , yCords);
-		/*// Old code 
-		double yMin= r.y ;
-		double yMax=0;
-		double xMin= r.x ;
-		double xMax=0;
-		for( int cords = 0 ; cords< xCords.length; cords++) {
-			yMin = Math.min(yMax, yCords[cords]);
-			yMax= Math.max(yMax, yCords[cords]);
-			xMin = Math.min(xMin, xCords[cords]);
-			xMax= Math.max(xMax, xCords[cords]);
-		}
-		ArrayList<Double> xCordinate = new ArrayList<Double>();
-		for( double cords = yMin; cords< yMax; cords++) {
-			for( int lines = 0 ; lines< xCords.length; lines++) {
-				double min = Math.min(yCords[lines], yCords[(lines+1)% xCords.length]);
-				double max = Math.max(yCords[lines], yCords[(lines+1)% xCords.length]);
-
-				double dx =xCords[(lines+1)% xCords.length]-xCords[lines];
-				double dy =yCords[(lines+1)% xCords.length]-yCords[lines];
-				double m = dy/dx;
-
-				double b= yCords[lines]-  ((m)*xCords[lines]) ;
-				if(dx == 0) {
-					xCordinate.add(xCords[lines]);
-				}else
-					if(dy == 0) {
-						continue;
-					}
-					else
-						if(   m!=0) {
-							if(cords< max && cords > min) {
-								xCordinate.add((cords-b)/m);
-							}
-						}
-			}
-
-			Collections.sort(xCordinate);
-			if(xCordinate.size()==3) {
-				for( double x = Math.min(xCordinate.get(1),xCordinate.get(0)); x < Math.max(xCordinate.get(1),xCordinate.get(0)); x++ ) {
-					//this.setPixel((int)Math.round(x),(int)Math.round(cords), color);
-					this.setPixel((int)Math.round(x),(int)Math.round(cords), color, getPixelOnObj((int)x , (int)cords ,obj , camera , r , f , sizex));
-				}for( double x = Math.min(xCordinate.get(1),xCordinate.get(2)); x < Math.max(xCordinate.get(1),xCordinate.get(2)); x++ ) {
-					//this.setPixel((int)Math.round(x),(int)Math.round(cords), color);
-					this.setPixel((int)Math.round(x),(int)Math.round(cords), color, getPixelOnObj((int)x , (int)cords ,obj , camera , r , f , sizex));
-				}	
-
-			}else
-				if(xCordinate.size()!=1) 
-					for(int i = 0 ; i < xCordinate.size() ; i +=2) {
-						for( double x = Math.min(xCordinate.get(i),xCordinate.get(i+1)); x < Math.max(xCordinate.get(i),xCordinate.get(i+1)); x++ ) {
-							//this.setPixel((int)Math.round(x),(int)Math.round(cords), color);
-							this.setPixel((int)Math.round(x),(int)Math.round(cords), color, getPixelOnObj((int)x , (int)cords ,obj , camera , r , f , sizex));
-						}
-					}
-
-
-			xCordinate.clear();
-		}*/
-		debug.drawMap(depthMap);
+		//debug.drawMap(depthMap);
 		return true;
 	}
 	void fillBottomFlatTriangle(Vector v1, Vector v2, Vector v3)
@@ -155,7 +105,13 @@ public class ScreenImage extends BufferedImage{
 		double curx1 = v1.x;
 		double curx2 = v1.x;
 		int max = (int) Math.min( v2.y, globalR.y);
-		for (int scanlineY = (int) v1.y; scanlineY <= max; scanlineY++)
+		int scanlineY = (int) v1.y;
+		if( v1.y<0) {
+			scanlineY= 0;
+			curx1 += (-v1.y)* (invslope1);
+			curx2 += (-v1.y)* (invslope2);
+		}
+		for (scanlineY = scanlineY; scanlineY <= max; scanlineY++)
 		{
 			drawLineOnY((int)curx1, (int)curx2, scanlineY);
 			curx1 += invslope1;
@@ -168,9 +124,14 @@ public class ScreenImage extends BufferedImage{
 
 		double curx1 = v3.x;
 		double curx2 = v3.x;
-
+		int scanlineY = (int) v3.y;
 		int max = (int) Math.max( v1.y, 0);
-		for (int scanlineY = (int) v3.y; scanlineY > max; scanlineY--)
+		if( v3.y> globalR.y) {
+			scanlineY=(int) globalR.y;
+			curx1 -= (v3.y- globalR.y)* (invslope1);
+			curx2 -= (v3.y- globalR.y)* (invslope2);
+		}
+		for (scanlineY= scanlineY; scanlineY > max; scanlineY--)
 		{
 			drawLineOnY((int)curx1,  (int)curx2, scanlineY);
 			curx1 -= invslope1;
@@ -179,12 +140,15 @@ public class ScreenImage extends BufferedImage{
 	}
 	private void drawLineOnY(int curx1, int curx2, int scanlineY) {
 		int end = (int) Math.min(Math.max(curx1, curx2),globalR.x);
-		int start = Math.max(Math.min(curx1, curx2),0);
+	int start = Math.max(Math.min(curx1, curx2),0);
+	dataList.add(new data(start, end,scanlineY , globalObj));
+		/*
+		
 		for(int x =start ; x < end ; x++  ) {
 			if( x>= globalF  &&x< globalR.x && scanlineY > 0 &&scanlineY <globalR.y)
 			dataList.add(new data(x,scanlineY , globalObj));
 			
-		}
+		}*/
 	}void drawTriangle(double[] xCords , double[] yCords)
 	{
 		Vector v1= null;
@@ -268,6 +232,18 @@ public class ScreenImage extends BufferedImage{
 		return true;
 
 	}
+	@Override
+	public void setRGB(int x , int y , int rgb) {
+		pixelMap[y * getWidth() + x]= rgb;
+	}
+	public void imagify() {
+		WritableRaster rast = getRaster(); // Faster! No copy, and live updated
+		rast.setDataElements(0, 0, getWidth(), getHeight(), pixelMap);
+	}
+	
+	
+	
+	
 	public int rgbToInt(Color rgb) {
 		return 65536 * rgb.getRed() + 256 * rgb.getGreen() + rgb.getBlue();
 	}

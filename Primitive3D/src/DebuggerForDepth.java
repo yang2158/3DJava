@@ -2,12 +2,15 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
-public class DebuggerForDepth  extends JPanel implements MouseMotionListener{
+public class DebuggerForDepth  extends JPanel implements MouseMotionListener , ActionListener{
 	/**
 	 * 
 	 */
@@ -15,6 +18,8 @@ public class DebuggerForDepth  extends JPanel implements MouseMotionListener{
 	int x,y ;
 	double[][] display= new double[2000][2000];
 	public DebuggerForDepth() {
+
+		Timer time = new Timer(1000,this);
 		setFocusable(true);
 		addMouseMotionListener(this);
 		
@@ -29,6 +34,7 @@ public class DebuggerForDepth  extends JPanel implements MouseMotionListener{
 		app.setLocationRelativeTo(null);
 		app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		app.setVisible(true);
+		time.start();
 	}
 	public void drawMap(double[][] map) {
 		display = map;
@@ -56,7 +62,7 @@ public class DebuggerForDepth  extends JPanel implements MouseMotionListener{
 					g2.drawRect(i, e, 1, 1);
 					continue;
 				}
-				g2.setPaint(new Color ((int)((display[i][e]-min) / (max - min)*200)+55 ,0,0));
+				g2.setPaint(new Color (255-((int)((display[i][e]-min) / (max - min)*200)+55) ,0,0));
 				g2.drawRect(i, e, 1, 1);
 			}
 		}
@@ -74,8 +80,12 @@ public class DebuggerForDepth  extends JPanel implements MouseMotionListener{
 	@Override
 	public void mouseMoved(MouseEvent e) {
 		// TODO Auto-generated method stub
-		repaint();
+		//repaint();
 		x= e.getX();
 		y= e.getY();
+	}
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		repaint();
 	}
 }

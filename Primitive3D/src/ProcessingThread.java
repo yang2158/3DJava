@@ -8,14 +8,18 @@ public class ProcessingThread extends Thread{
 	public Vector r, camera ;
 	Queue<outputData> dataDone ;
 	ArrayList<data> dataList;
+	public boolean done= true;
+	public boolean outputted= true;
 
-	private Vector globalCamera;
-	private Vector globalR;
-	private double globalF;
-	private double globalSizeX;
+	public Vector globalCamera;
+	public  Vector globalR;
+	public double globalF;
+	public double globalSizeX;
 	private int threadNum;
 	private int numThreads;
-
+	public boolean isDone() {
+		return done;
+	}
 	public ProcessingThread(int id , int size , Vector r, Vector cam , double f , double sizex) {
 
 		globalCamera = cam;
@@ -27,31 +31,59 @@ public class ProcessingThread extends Thread{
 
 
 	}
+	public void init(int id , int size , Vector r, Vector cam , double f , double sizex) {
+
+		globalCamera = cam;
+		globalR = r;
+		globalSizeX = sizex;
+		globalF = f;
+		threadNum = id;
+		numThreads = size;
+	}
 	// TODO : Make it so instead of taking pixels take rows and find a way to use the previous result to get the next pixel on the row
 	public void giveData(ArrayList<data> queue) {
-		dataList = new ArrayList<>(queue);;
+		dataList = new ArrayList<>(queue);
+		done = false;
+		
 	}
 	public Queue<outputData> getDone() {
 		return dataDone;
 	}
 	public void run() {
-		dataDone = new LinkedList<>();
-		int size =dataList.size();
-		if(!dataList.isEmpty()) {
-		for(int i = threadNum ; i < size ; i+=numThreads) {
-				data temp = dataList.get(i);
-				double num =getPixelOnObj((int)temp.x , (int)temp.y ,temp.obj  );
-				if(num>=globalF)
-					dataDone.add(new outputData(temp.x,temp.y ,num,temp.obj.color) );
-				
-		}}
+		while(true) {
+			if(!done ) {
+				dataDone = new LinkedList<>();
+				int size =dataList.size();
+				System.out.println(size);
+				if(!dataList.isEmpty()) {
+					for(int i = threadNum ; i < size ; i+=numThreads) {
+						data temp = dataList.get(i);
+
+
+						for(int x =temp.x ; x < temp.xe ; x++  ) {
+							if( x>= globalF  &&x< globalR.x && temp.y > 0 &&temp.y <globalR.y) {
+
+								double num =getPixelOnObj((int)x , (int)temp.y ,temp.obj  );
+								if(num>=0)
+									dataDone.add(new outputData(x,temp.y ,num,temp.obj.color) );}
+						}
+						/**/
+
+					}}
+				outputted= false;
+				done= true;
+			}
+
+
+
+		}
 	}
 	//Gets the Distance given a pixel and a obj and the system variables
 	public double getPixelOnObj(int x, int y, Shape obj  ) {
 
 		Vector PixelPos3D = new Vector (globalF,-(globalSizeX*(y-(globalR.y/2)))/globalR.y,(globalSizeX*(x- (globalR.x/2))  )/globalR.x );// The 2d plane dist , 
 		double magnitude = Math.sqrt(PixelPos3D.x *PixelPos3D.x + PixelPos3D.y *PixelPos3D.y + PixelPos3D.z * PixelPos3D.z);
-		
+
 		//return experimental(new Vector(0,globalCamera.y + PixelPos3D.y,globalCamera.z + PixelPos3D.z ), obj.Cords[0] , obj.getNormal()); //Doesn't work (please look at comment on the function)
 		return intersect (globalCamera, PixelPos3D , obj.Cords[1] , obj.getNormal())/ magnitude;
 	}
