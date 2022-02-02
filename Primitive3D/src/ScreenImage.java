@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Queue;
 public class ScreenImage extends BufferedImage{
 	public double[][] depthMap = new double[1][1];
-
+	final int WHITE =16777215;
 	public int[] pixelMap = new int[1];
 	DebuggerForDepth debug = new DebuggerForDepth();
 	private Shape globalObj;
@@ -16,8 +16,8 @@ public class ScreenImage extends BufferedImage{
 	private double globalF;
 	private double globalSizeX;
 	Graphics graphics = this.getGraphics();
-	final int numth = 2; // # of threads
-    ArrayList<data> dataList = new ArrayList<>();
+	final int numth = 12; // # of threads
+	ArrayList<data> dataList = new ArrayList<>();
 	ProcessingThread[] threads = new ProcessingThread[numth] ;
 	public ScreenImage(int width, int height) {
 
@@ -25,16 +25,11 @@ public class ScreenImage extends BufferedImage{
 		depthMap = new double[width][height];
 		pixelMap = new int[width*height];
 
-		for(int i = 0 ; i< numth ; i ++) {
-			threads[i] = new ProcessingThread(i, numth , globalR , globalCamera,globalF , globalSizeX );
-		}
-		for(int i = 0 ; i< numth ; i ++) {
-			threads[i] .start();
-		}
+
 		for(int i = 0 ; i < width ; i ++) {
 			for( int e = 0 ;  e < height ; e++) {
 				depthMap[i][e] =Double.MAX_VALUE;
-				setRGB(i, e, rgbToInt(Color.white));
+				setRGB(i, e, -1);
 			}
 		}
 	}
@@ -45,44 +40,48 @@ public class ScreenImage extends BufferedImage{
 	}
 	public void processImage() {
 		for(int i = 0 ; i< numth ; i ++) {
+
+			threads[i] = new ProcessingThread(i, numth , globalR , globalCamera,globalF , globalSizeX );
+			
 			threads[i].init(i, numth , globalR , globalCamera,globalF , globalSizeX );
-			threads[i].giveData(dataList);
+			threads[i].giveData(dataList);threads[i].start();
 		}
 		//long time =System.currentTimeMillis();
 		boolean processing = true;
 		while (processing) {
 			processing = false;
-			
+
 			for(int i = 0 ; i< numth ; i ++) {
-				if(!threads[i].isDone() ) {
+				if( threads[i].isAlive()) {
 					processing = true;
 				}else {
-					if(!threads[i].outputted &&threads[i].done ) {
+					
 						Queue<outputData> processedData =  threads[i].getDone();
 						//System.out.print(processedData.size() + " " );
 						while(!processedData.isEmpty()) {// Offload processed data
 							outputData dat = processedData.remove();
 							setPixel(dat.x , dat.y ,dat.color, dat.depth );
-							
+							//TODO make it so that it only processed overlapping pixels
+
 						}
-					}
+					
 				}
-				
+
 			}
 		}
 		imagify();
 		//debug.drawMap(depthMap);
-		
+
 		//System.out.println("  ; "+ (System.currentTimeMillis()-time) + "ms");
 	}
 	public void reset() {
 		dataList.clear();
 		graphics.fillRect(0, 0, this.getWidth(), this.getHeight());
-		
+
 		for(int i = 0 ; i < this.getWidth() ; i ++) {
 			for( int e = 0 ;  e < this.getHeight() ; e++) {
 				depthMap[i][e] =Double.MAX_VALUE;
-				
+
 				this.setRGB(i, e, rgbToInt(Color.white));
 			}
 		}
@@ -140,14 +139,14 @@ public class ScreenImage extends BufferedImage{
 	}
 	private void drawLineOnY(int curx1, int curx2, int scanlineY) {
 		int end = (int) Math.min(Math.max(curx1, curx2),globalR.x);
-	int start = Math.max(Math.min(curx1, curx2),0);
-	dataList.add(new data(start, end,scanlineY , globalObj));
+		int start = Math.max(Math.min(curx1, curx2),0);
+		dataList.add(new data(start, end,scanlineY , globalObj));
 		/*
-		
+
 		for(int x =start ; x < end ; x++  ) {
 			if( x>= globalF  &&x< globalR.x && scanlineY > 0 &&scanlineY <globalR.y)
 			dataList.add(new data(x,scanlineY , globalObj));
-			
+
 		}*/
 	}void drawTriangle(double[] xCords , double[] yCords)
 	{
@@ -214,12 +213,22 @@ public class ScreenImage extends BufferedImage{
 		}
 		else
 		{
-			
+
 			/* general case - split the triangle in a topflat and bottom-flat one */
 			Vector v4 = new Vector(
 					(v1.x + ((double)(v2.y - v1.y) / (double)(v3.y - v1.y)) * (v3.x - v1.x)), v2.y, 0);
 			fillBottomFlatTriangle( v1, v2, v4);
 			fillTopFlatTriangle( v2, v4, v3);
+		}
+	}
+	public void attemptPixel(int x, int y , int color) {
+
+		if(pixelMap[y * getWidth() + x] == -1) {
+			setRGB(x, y, color);
+			//return true;
+		}
+		if(pixelMap[y * getWidth() + x] != color) {
+			
 		}
 	}
 	public boolean setPixel(int x , int y, Color color, double depth) {
@@ -234,16 +243,18 @@ public class ScreenImage extends BufferedImage{
 	}
 	@Override
 	public void setRGB(int x , int y , int rgb) {
+		if( rgb == -1 )
+			pixelMap[y * getWidth() + x]= WHITE;//if no color set to white
 		pixelMap[y * getWidth() + x]= rgb;
 	}
 	public void imagify() {
-		WritableRaster rast = getRaster(); // Faster! No copy, and live updated
+		WritableRaster rast = getRaster();
 		rast.setDataElements(0, 0, getWidth(), getHeight(), pixelMap);
 	}
-	
-	
-	
-	
+
+
+
+
 	public int rgbToInt(Color rgb) {
 		return 65536 * rgb.getRed() + 256 * rgb.getGreen() + rgb.getBlue();
 	}

@@ -43,41 +43,36 @@ public class ProcessingThread extends Thread{
 	// TODO : Make it so instead of taking pixels take rows and find a way to use the previous result to get the next pixel on the row
 	public void giveData(ArrayList<data> queue) {
 		dataList = new ArrayList<>(queue);
-		done = false;
-		
+
 	}
 	public Queue<outputData> getDone() {
 		return dataDone;
 	}
 	public void run() {
-		while(true) {
-			if(!done ) {
-				dataDone = new LinkedList<>();
-				int size =dataList.size();
-				System.out.println(size);
-				if(!dataList.isEmpty()) {
-					for(int i = threadNum ; i < size ; i+=numThreads) {
-						data temp = dataList.get(i);
+		dataDone = new LinkedList<>();
+		int size =dataList.size();
+		if(!dataList.isEmpty()) {
+			for(int i = threadNum ; i < size ; i+=numThreads) {
+				data temp = dataList.get(i);
 
 
-						for(int x =temp.x ; x < temp.xe ; x++  ) {
-							if( x>= globalF  &&x< globalR.x && temp.y > 0 &&temp.y <globalR.y) {
+				for(int x =temp.x ; x < temp.xe ; x++  ) {
+					if( x>= globalF  &&x< globalR.x && temp.y > 0 &&temp.y <globalR.y) {
 
-								double num =getPixelOnObj((int)x , (int)temp.y ,temp.obj  );
-								if(num>=0)
-									dataDone.add(new outputData(x,temp.y ,num,temp.obj.color) );}
-						}
-						/**/
+						double num =getPixelOnObj((int)x , (int)temp.y ,temp.obj  );
+						if(num>=0)
+							dataDone.add(new outputData(x,temp.y ,num,temp.obj.color) );}
+				}
+				/**/
 
-					}}
-				outputted= false;
-				done= true;
 			}
-
-
-
 		}
 	}
+
+
+
+
+
 	//Gets the Distance given a pixel and a obj and the system variables
 	public double getPixelOnObj(int x, int y, Shape obj  ) {
 
