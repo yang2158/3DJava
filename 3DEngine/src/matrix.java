@@ -36,7 +36,6 @@ public class matrix {
 	public static double[][] multiplyMatrices(double[][] firstMatrix, double[][] secondMatrix) {
 		int r1 = firstMatrix.length;
 		int c1 = firstMatrix[0].length;
-		int r2 = secondMatrix.length;
 		int c2 = secondMatrix[0].length;
 		
 		

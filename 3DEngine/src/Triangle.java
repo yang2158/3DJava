@@ -5,6 +5,7 @@ public class Triangle {
 	public Vector2[] TextureCords= new Vector2[3];
 	public Vector3[] Cords= new Vector3[3];
 	public Vector3[] camCords= new Vector3[3];
+	public Vector3[] camnormal= new Vector3[3];
 	Vector3[] normal=  new Vector3[3];
 	int imageID =0;
 	Color trueColor = new Color(69,8,69); // WHAT YOU SEE IS NOT WHAT YOU EXPECT IS IT NOW
@@ -49,8 +50,12 @@ public class Triangle {
 
 		//}
 	}
-	public Vector3 getnormal (double w1,double w2,double w3) {
-		return new Vector3(normal[0].x*w1 + normal[1].x*w2 + normal[2].x*w3,normal[0].y*w1 + normal[1].y*w2 + normal[2].y*w3,normal[0].z*w1 + normal[1].z*w2 + normal[2].z*w3);
+	
+	public Vector3 getcamnormal (double w1,double w2,double w3) {
+		return new Vector3(
+				camnormal[0].x*w1 + camnormal[1].x*w2 + camnormal[2].x*w3,
+				camnormal[0].y*w1 + camnormal[1].y*w2 + camnormal[2].y*w3,
+				camnormal[0].z*w1 + camnormal[1].z*w2 + camnormal[2].z*w3);
 		
 	}
 	public Vector3 getPos (double w1,double w2,double w3) {
