@@ -15,6 +15,9 @@
 		  }
 		  public double dot(Vector other) {
 			  return this.x * other.x + this.y * other.y+ this.z * other.z; 
+		  }public double getMagnitude() {
+			  return Math.sqrt(x*x + y*y + z*z);
+			  
 		  }
 		  public Vector crossProduct(Vector u) {
 			  

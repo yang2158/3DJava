@@ -10,7 +10,7 @@ public class ProcessingThread extends Thread{
 	ArrayList<data> dataList;
 	public boolean done= true;
 	public boolean outputted= true;
-
+	double globalInc ;
 	public Vector globalCamera;
 	public  Vector globalR;
 	public double globalF;
@@ -37,6 +37,7 @@ public class ProcessingThread extends Thread{
 		globalR = r;
 		globalSizeX = sizex;
 		globalF = f;
+		globalInc = globalSizeX/globalR.x;
 		threadNum = id;
 		numThreads = size;
 	}
@@ -54,12 +55,14 @@ public class ProcessingThread extends Thread{
 		if(!dataList.isEmpty()) {
 			for(int i = threadNum ; i < size ; i+=numThreads) {
 				data temp = dataList.get(i);
-
-
+				double tempY = globalSizeX*(-temp.y/globalR.y +0.5) ;
+				double tempX = globalSizeX*(temp.x/globalR.x   - 0.5);
+				if(temp.y > 0 &&temp.y <globalR.y)
 				for(int x =temp.x ; x < temp.xe ; x++  ) {
-					if( x>= globalF  &&x< globalR.x && temp.y > 0 &&temp.y <globalR.y) {
-
-						double num =getPixelOnObj((int)x , (int)temp.y ,temp.obj  );
+					if( x>= globalF  &&x< globalR.x ) {
+						
+						double num =getPixelOnObj(tempX , tempY ,temp.obj  );
+						tempX += globalInc;
 						if(num>=0)
 							dataDone.add(new outputData(x,temp.y ,num,temp.obj.color) );}
 				}
@@ -74,14 +77,14 @@ public class ProcessingThread extends Thread{
 
 
 	//Gets the Distance given a pixel and a obj and the system variables
-	public double getPixelOnObj(int x, int y, Shape obj  ) {
+	public double getPixelOnObj(double x, double tempY, Shape obj  ) {
 
-		Vector PixelPos3D = new Vector (globalF,-(globalSizeX*(y-(globalR.y/2)))/globalR.y,(globalSizeX*(x- (globalR.x/2))  )/globalR.x );// The 2d plane dist , 
+		Vector PixelPos3D = new Vector (globalF,tempY,x) ;// The 2d plane dist , 
 		double magnitude = Math.sqrt(PixelPos3D.x *PixelPos3D.x + PixelPos3D.y *PixelPos3D.y + PixelPos3D.z * PixelPos3D.z);
 
 		//return experimental(new Vector(0,globalCamera.y + PixelPos3D.y,globalCamera.z + PixelPos3D.z ), obj.Cords[0] , obj.getNormal()); //Doesn't work (please look at comment on the function)
 		return intersect (globalCamera, PixelPos3D , obj.Cords[1] , obj.getNormal())/ magnitude;
-	}
+	} 
 	double intersect(Vector p , Vector v , Vector n , Vector d) // point , vector , plane point , direction (ikr why did this dumbass place n as the point and not the normal. Apparently this dumbass is me)
 	{
 		return -(d.dot(p) - n.dot(d)) / d.dot(v);// Line plane intersection

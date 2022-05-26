@@ -17,6 +17,8 @@ public class DebuggerForDepth  extends JPanel implements MouseMotionListener , A
 	private static final long serialVersionUID = 1L;
 	int x,y ;
 	double[][] display= new double[2000][2000];
+
+	double[] displayBuffer= new double[2000*2000];
 	public DebuggerForDepth() {
 
 		Timer time = new Timer(1000,this);
@@ -34,10 +36,10 @@ public class DebuggerForDepth  extends JPanel implements MouseMotionListener , A
 		app.setLocationRelativeTo(null);
 		app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		app.setVisible(true);
-		time.start();
 	}
 	public void drawMap(double[][] map) {
 		display = map;
+		repaint();
 	}
 	public void paintComponent(Graphics g) {
 		Graphics2D g2 = (Graphics2D)g ;
