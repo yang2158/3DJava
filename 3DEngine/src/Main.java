@@ -14,33 +14,55 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 public class Main extends JPanel implements KeyListener ,ActionListener {
+	
+	//Untested Settings ( Settings that if changed might not work)
+	public double FOV = 1;// You don wanna change this 
+	
+	
+	
+	//SETTINGS
+	public int sampleSize =2;
+	public String loadOBJ_FILENAME = "sign.obj";// loads a obj file with it's mtl file
+	public double f = 1;// Plane / Intersection / Close clipping plane
+	public Vector3 CPos= new Vector3(0,0,-150);//Starting positions
+	public Vector3 COre= new Vector3(90,0,0);// Starting rotation
+	public Vector2 sD = new Vector2 (500,500);
+	
+	
+	//Constants 
+	final Vector3 zero = new Vector3(0,0,0);
+	final Vector3 forwardFace =new Vector3(1,0,0);
+	boolean[] held = new boolean[1000]; // WHICH BUTTONS ARE HELD (just makes it easier to make the movement)
+	
+	
+	//Variables
+	WritableRaster deprecatedRaster;// Deprecated drawing of buffer to image
+	ReturnData reData= new ReturnData();
+	
+	//My Libraries
 	matrix mat= new matrix();
-	Vector3 CPos= new Vector3(0,0,-150);	
-	Vector3 COre= new Vector3(90,0,0);
-	Quaternion quaternion = new Quaternion();
+	Quaternion quaternion = new Quaternion();// not quaternion just rotation matrix 
 	Shaders shade = new Shaders();
-	ArrayList < light> lights= new ArrayList<light>();
-	boolean[] held = new boolean[1000]; // 
-	double FOV = 1;
-	double f = 1;
-	 Vector3 zero = new Vector3(0,0,0);
-	ArrayList<worldObject> world = new ArrayList<worldObject>();
-	// Screen Dimentions
-	static Vector2 sSD = new Vector2 (1000,1000);
-	Vector2 sD = new Vector2 (1000,1000);
+	
+	
+	
+	
+	//DATA
 	ArrayList<BufferedImage> textures = new ArrayList<BufferedImage>();
+	ArrayList<worldObject> world = new ArrayList<worldObject>();
+	ArrayList < light> lights= new ArrayList<light>();
 	
-	WritableRaster deprecatedRaster ;
 	
-	BufferedImage displayBuffer = new BufferedImage((int)sD.x , (int)sD.y, BufferedImage.TYPE_INT_RGB);
+	
 
 	int[] backBuffer = new int [(int) (sD.x * sD.y)];
-	int sampleSize =1;
-	
+
+	BufferedImage displayBuffer = new BufferedImage((int)sD.x , (int)sD.y, BufferedImage.TYPE_INT_RGB);
 	Color[][] sampleBuffer =new Color [(int) (sD.x*sampleSize)][(int) (sD.y * sampleSize)];
 	double[][] depthBuffer = new double[(int) (sD.x*sampleSize)][(int) (sD.y * sampleSize)];
-	Color[][] blanksampleBuffer =new Color [(int) (sD.x*sampleSize)][(int) (sD.y * sampleSize)];
-	double[][] blankdepthBuffer = new double[(int) (sD.x*sampleSize)][(int) (sD.y * sampleSize)];
+	
+	
+	
 	public void loadObj(String filename) {
 		worldObject obj = new worldObject();
 		obj.loadFile(filename,this);
@@ -82,12 +104,18 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 				r/=(sampleSize * sampleSize);
 				g/=(sampleSize * sampleSize);
 				b/=(sampleSize * sampleSize);
-				setDisplayRGB(i/sampleSize,j/sampleSize ,rgbToInt(new Color((int)Math.sqrt(r),(int)Math.sqrt(g),(int)Math.sqrt(b))));
+				setDisplayRGB(i/sampleSize,j/sampleSize ,rgbToInt(new Color((int)Sqrt(r),(int)Sqrt(g),(int)Sqrt(b))));
 			}
 
 		}
+	}public static double Sqrt(double x) {
+	    double xhalf = 0.5d * x;
+	    long i = Double.doubleToLongBits(x);
+	    i = 0x5fe6ec85e7de30daL - (i >> 1);
+	    x = Double.longBitsToDouble(i);
+	    x *= (1.5d - xhalf * x * x);
+	    return 1/x;
 	}
-	ReturnData reData= new ReturnData();
 	void drawTriangle(Vector2 v0, Vector2 v1 , Vector2 v2, Triangle obj)
 	{
 
@@ -96,9 +124,8 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 		int minY= (int) Math.min(v0.y, Math.min(v1.y, v2.y));
 		int maxY= (int) (Math.max(v0.y, Math.max(v1.y, v2.y)));// add 1 so it always rounds up
 		
-		double area = edgeFunction(v0, v1, v2); 
 
-		double area3 = edgeFunction(obj.Cords[0],obj.Cords[1], obj.Cords[2]); 
+		double area3 = edgeFunction(obj.camCords[0],obj.camCords[1], obj.camCords[2]); 
 		for (int j = minY*sampleSize-1; j <= maxY*sampleSize+1; ++j) { 
 			for (int i = minX*sampleSize-1; i <= maxX*sampleSize+1; ++i) { 
 				//tempX += inc;
@@ -113,23 +140,19 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 //*/
 				if (w0 >= 0 && w1 >= 0 && w2 >= 0) { 
 					
-					w0 /= area; 
-					w1 /= area; 
-					w2 /= area; 
 					getPixelOnObj(tempX , tempY ,obj, reData  );
 					double num = reData.dist;
 					
-					if(num>=20) {
-						Vector3 p3d= obj.getPos(w0, w1, w2);
+					if(num>=f) {
+						Vector3 p3d= reData.a;
 						
 						
 						
 						//setRGB(i,j , Color.red);
 
-						double wc0 = edgeFunction(obj.Cords[1], obj.Cords[2],p3d ); 
-						double wc1 = edgeFunction(obj.Cords[2], obj.Cords[0], p3d); 
-						double wc2 = edgeFunction(obj.Cords[0], obj.Cords[1], p3d); 
-						area3 = (wc0 + wc1 + wc2);
+						double wc0 = edgeFunction(obj.camCords[1], obj.camCords[2],p3d ); 
+						double wc1 = edgeFunction(obj.camCords[2], obj.camCords[0], p3d); 
+						double wc2 = edgeFunction(obj.camCords[0], obj.camCords[1], p3d); 
 						wc0 /= area3; 
 						wc1 /= area3; 
 						wc2 /= area3;
@@ -139,7 +162,6 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 						for (int h = 0; h < lights.size(); h++) {
 							tint = Math.max(tint, shade.getTint(p3d, obj.getnormal(wc0, wc1, wc2),lights.get(h) ));
 						}
-						
 						Color a=new Color((textures.get(obj.imageID).getRGB((int)((x%1)*textures.get(obj.imageID).getWidth()), (int)((1-(y%1))*textures.get(obj.imageID).getHeight()))));
 						a= shade.shade(tint, a);
 						setSample(i, j,a ,num );
@@ -147,16 +169,11 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 						//System.out.println(num);
 					}
 				}
-				
-
 			}
 		}
-
 	}
 	private void setSample(int x, int y, Color color, double depth) {
-		
 		if(   x >=0 && x< sD.x * sampleSize &&y >=0 && y< sD.y * sampleSize && depthBuffer[x][y]> depth){
-
 			depthBuffer[x][y] = depth;
 			setRGB(x, y, color);
 		}
@@ -169,10 +186,10 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 	{ 
 		Vector3 one = new Vector3(v1.x -p.x ,v1.y -p.y ,v1.z -p.z  );
 		Vector3 two = new Vector3(v2.x -p.x ,v2.y -p.y ,v2.z -p.z  );
-		double i = (one.y -two.z - one.z *two.y ) ;
-		double j = (one.z -two.x - one.x *two.z ) ;
-		double k = (one.x -two.y - one.y *two.x ) ;
-		return Math.sqrt(i* i + j * j + k *k) / 2 ;
+		double i = (one.y*two.z - one.z *two.y ) ;
+		double j = (one.z*two.x - one.x *two.z ) ;
+		double k = (one.x*two.y - one.y *two.x ) ;
+		return Sqrt(i* i + j * j + k *k) / 2 ;
 	
 	
 	} 
@@ -185,8 +202,8 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 	{ return (px - v1x) * (v2y - v1y) - (py - v1y) * (v2x - v1x); } 
 	public void displayBack() {
 		convertBuffer();
-		deprecatedRaster.setDataElements(0, 0, (int)sD.x,(int)sD.y, backBuffer);
-		//displayBuffer.setRGB(0, 0, (int)sD.x,(int)sD.y, backBuffer,0,(int)sD.x);
+		//deprecatedRaster.setDataElements(0, 0, (int)sD.x,(int)sD.y, backBuffer);
+		displayBuffer.setRGB(0, 0, (int)sD.x,(int)sD.y, backBuffer,0,(int)sD.x);
 	}
 	public int rgbToInt(Color rgb) {
 		return 65536 * rgb.getRed() + 256 * rgb.getGreen() + rgb.getBlue();
@@ -199,7 +216,7 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 		Main pane = new Main();
 		JFrame app = new JFrame("App");
 		app.add(pane, BorderLayout.CENTER);
-		app.setSize( (int)sSD.x, (int)sSD.y);
+		app.setSize( (int)pane.sD.x, (int)pane.sD.y);
 
 		app.setLocationRelativeTo(null);
 		app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -207,9 +224,9 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 
 
 	}
+	void init() {
 
-	public Main() {
-		loadObj("untitled.obj");
+		loadObj("sign.obj");
 		lights.add( new light (new Vector3(1000,1000,1000)));
 		deprecatedRaster = displayBuffer.getRaster();
 		for (int i = 0 ; i < (int) (sD.x*sampleSize) ;i++) {
@@ -218,10 +235,11 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 				depthBuffer[i][j] =Double.MAX_VALUE;
 			}
 		}
-		blanksampleBuffer = sampleBuffer.clone();
-		blankdepthBuffer = depthBuffer.clone();
-		Timer time = new Timer(1,this);
+	}
 
+	public Main() {
+		init();
+		Timer time = new Timer(0,this);
 		paint(null);
 		setFocusable(true);
 		addKeyListener(this);
@@ -293,7 +311,7 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 		 PixelPos3D.set(f,tempY,x) ;
 		// The 2d plane dist , 
 		
-		double magnitude = Math.sqrt(PixelPos3D.x *PixelPos3D.x + PixelPos3D.y *PixelPos3D.y + PixelPos3D.z * PixelPos3D.z);
+		double magnitude = Sqrt(PixelPos3D.x *PixelPos3D.x + PixelPos3D.y *PixelPos3D.y + PixelPos3D.z * PixelPos3D.z);
 
 		//return experimental(new Vector3(0,globalCamera.y + PixelPos3D.y,globalCamera.z + PixelPos3D.z ), obj.Cords[0] , obj.getNormal()); //Doesn't work (please look at comment on the function)
 		double num =intersect(CPos, PixelPos3D , obj.camCords[0] , obj.getNormal()) ;
@@ -304,7 +322,6 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 		re.setReturnData( vre, num/ magnitude) ;
 	} 
 	Vector3 pointNormal= new Vector3(0,0,0);
-	Vector3 forwardFace =new Vector3(1,0,0);
 	Vector3 centerFront = (new Vector3 (CPos.x+f, CPos.y , CPos.z));
 	public Vector2 Prespective(Vector3 point) {/*
 		//Triangle similarity To solve projection on 2D plane given line
@@ -312,8 +329,8 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 		double f1= (point.x-CPos.x);
 		double z1= (point.z-CPos.z);
 		double x = (f* z1)/f1;
-		double b2 = Math.sqrt(f*f + x*x);
-		double b1 = Math.sqrt( f1*f1 +z1*z1 );
+		double b2 = Sqrt(f*f + x*x);
+		double b1 = Sqrt( f1*f1 +z1*z1 );
 		double y = (b2 *(point.y-CPos.y))/b1; 
 	 */
 		double x,y;
