@@ -13,6 +13,8 @@ import java.util.Scanner;
 import javax.imageio.ImageIO;
 
 public class worldObject {
+	public Vector3 pos= new Vector3(0,0,0);
+	public Vector3 rot= new Vector3(0,0,0);
 	LinkedList <Vector2> loadedTexCords = new LinkedList<Vector2>();
 	
 	LinkedList <Vector3> loadedVectors = new LinkedList<Vector3>();
@@ -106,6 +108,7 @@ public class worldObject {
 						int[] Textureindexes = new int[top];
 						for(int i = 1 ; i <=top ;i++) {
 							String[] content = line[i].split("/");
+							
 							ninx[i-1]= Integer.parseInt(content[2])-1;
 							indexes[i-1] = Integer.parseInt(content[0])-1;
 							Textureindexes[i-1] = Integer.parseInt(content[1])-1;

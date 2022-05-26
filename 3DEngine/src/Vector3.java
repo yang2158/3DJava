@@ -11,6 +11,10 @@
 			  y= yt;
 			  z= zt;
 		  }
+		  @Override
+		  public Vector3 clone() {
+			  return new Vector3(x,y,z);
+		  }
 		  public void Print() {
 			  System.out.println("x: "+x + "\ny: "+y + "\nz: "+ z);
 		  }
