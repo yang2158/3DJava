@@ -133,19 +133,25 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 		int minY= (int) Math.min(v0.y, Math.min(v1.y, v2.y));
 		int maxY= (int) (Math.max(v0.y, Math.max(v1.y, v2.y)));// add 1 so it always rounds up
 
+		double a01 = -(v0.y - v1.y)/sampleSize, b01 = -(v1.x - v0.x)/sampleSize;
+		double a12 = -(v1.y - v2.y)/sampleSize, b12 = -(v2.x - v1.x)/sampleSize;
+		double a20 = -(v2.y - v0.y)/sampleSize, b20 = -(v0.x - v2.x)/sampleSize;
+		
+		Vector2 p = new Vector2((double)(minX*sampleSize-1)/sampleSize, (double)(minY*sampleSize-1)/sampleSize);
+		double rowW0 = edgeFunction(v1, v2, p);
+		double rowW1 = edgeFunction(v2, v0, p);
+		double rowW2 = edgeFunction(v0, v1, p);
 
 		double area3 = edgeFunction(obj.camCords[0],obj.camCords[1], obj.camCords[2]); 
 		for (int j = minY*sampleSize-1; j <= maxY*sampleSize+1; ++j) { 
+			double w0 = rowW0;
+			double w1 = rowW1;
+			double w2 = rowW2;
 			for (int i = minX*sampleSize-1; i <= maxX*sampleSize+1; ++i) { 
 				//tempX += inc;
-				Vector2 p = new Vector2( ((double) i)/sampleSize , ((double)j)/sampleSize );
+				p = new Vector2( ((double) i)/sampleSize , ((double)j)/sampleSize );
 				double tempY = (sD.y *FOV /sD.x )/2 -(p.y*FOV/sD.x) ;
 				double tempX = FOV*(p.x/sD.x   - 0.5);
-
-
-				double w0 = edgeFunction(v1, v2, p); 
-				double w1 = edgeFunction(v2, v0, p); 
-				double w2 = edgeFunction(v0, v1, p); 
 				//*/
 				if (w0 >= 0 && w1 >= 0 && w2 >= 0) { 
 
@@ -178,7 +184,13 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 						//System.out.println(num);
 					}
 				}
+				w0 += a12;
+				w1 += a20;
+				w2 += a01;
 			}
+			rowW0 += b12;
+			rowW1 += b20;
+			rowW2 += b01;
 		}
 	}
 	private void setSample(int x, int y, Color color, double depth) {// Sets the sample buffer and depth buffer
