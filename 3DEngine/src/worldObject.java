@@ -74,14 +74,6 @@ public class worldObject {
 		// bufferedReader
 		BufferedReader buffReader = new BufferedReader(fileReader);
 
-		BufferedImage img = null;
-		
-		try {
-		    img = ImageIO.read(new File("texture.png"));
-		} catch (IOException e) {
-		}
-		
-
 		try {
 			String curObj =" asdasda";
 			String[] line = {"Random " , " Stuff " , "Temp"};
