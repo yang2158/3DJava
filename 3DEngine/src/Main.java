@@ -171,7 +171,7 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 						for (int h = 0; h < lights.size(); h++) {
 							tint = Math.max(tint, shade.getTint(p3d, obj.getcamnormal(wc0, wc1, wc2),lights.get(h) ));
 						}
-						Color a=new Color((textures.get(obj.imageID).getRGB((int)((x%1)*textures.get(obj.imageID).getWidth()), (int)((1-(y%1))*textures.get(obj.imageID).getHeight()))));
+						Color a=new Color(textures.get(obj.imageID).getRGB((int)((x%1)*textures.get(obj.imageID).getWidth()), (int)((1-(y%1))*textures.get(obj.imageID).getHeight())));
 						a= shade.shade(tint, a);
 						setSample(i, j,a ,num );
 					}else {
