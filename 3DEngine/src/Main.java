@@ -55,7 +55,7 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 
 
 	//DATA
-	ArrayList<BufferedImage> textures = new ArrayList<BufferedImage>();
+	ArrayList<Texture> textures = new ArrayList<Texture>();
 	ArrayList<worldObject> world = new ArrayList<worldObject>();
 	ArrayList < light> lights= new ArrayList<light>();
 
@@ -88,7 +88,7 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 	public void setDisplayRGB(int x , int y , int rgb) {
 		backBuffer[(int) (y * sD.x + x)]= rgb;
 	}
-	public int imageID(BufferedImage newImage) {
+	public int imageID(Texture newImage) {
 		textures.add(newImage);
 		return textures.size()-1;
 	}
