@@ -32,7 +32,7 @@ public class worldObject {
 			while (true) {
 				if(!mtl.hasNextLine()) {
 					System.out.println("Created Material "+ obj + " | "+ fln);
-					imageIDs.put(obj, a.imageID(ImageIO.read(new File(fln))));
+					imageIDs.put(obj, a.imageID(new Texture(ImageIO.read(new File(fln)))));
 					break;
 				}
 				String content = mtl.nextLine();
@@ -41,7 +41,7 @@ public class worldObject {
 					if(con[0].trim().equals("newmtl")) {
 						if(obj != "~~~"&&fln != "~~~") {
 							System.out.println("Created Material "+ obj + " | "+ fln);
-							imageIDs.put(obj, a.imageID(ImageIO.read(new File(fln))));
+							imageIDs.put(obj, a.imageID(new Texture(ImageIO.read(new File(fln)))));
 						}
 						obj = con[1].trim();
 						fln = "~~~";
