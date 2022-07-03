@@ -1,5 +1,4 @@
 import java.awt.Color;
-import java.io.File;
 
 public class Triangle {
 	public Vector2[] TextureCords= new Vector2[3];
