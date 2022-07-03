@@ -75,23 +75,25 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 		obj.loadFile(filename,this);
 		world.add(obj);
 		return obj;
-
 	}
-	public void blankBuffer () {
 
+	public void blankBuffer () {
 		for (int i = 0 ; i < (int) (sD.x*sampleSize) ;i++) {
 			for (int j = 0; j < (int) (sD.y * sampleSize); j++) {
 				depthBuffer[i][j] =Double.MAX_VALUE;
 			}
 		}
 	}
+
 	public void setDisplayRGB(int x , int y , int rgb) {
 		backBuffer[(int) (y * sD.x + x)]= rgb;
 	}
+
 	public int imageID(Texture newImage) {
 		textures.add(newImage);
 		return textures.size()-1;
 	}
+
 	public void convertBuffer () {
 		for (int i = 0 ; i < sD.x *sampleSize;i+=sampleSize) {
 			for (int j = 0; j < sD.y*sampleSize; j+=sampleSize) {
@@ -116,7 +118,9 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 			}
 
 		}
-	}public static double Sqrt(double x) {
+	}
+
+	public static double Sqrt(double x) {
 		double xhalf = 0.5d * x;
 		long i = Double.doubleToLongBits(x);
 		i = 0x5fe6ec85e7de30daL - (i >> 1);
@@ -124,10 +128,10 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 		x *= (1.5d - xhalf * x * x);
 		return 1/x;
 	}
+
 	//Draws a triangle 
 	void drawTriangle(Vector2 v0, Vector2 v1 , Vector2 v2, Triangle obj)
 	{
-
 		int minX= (int) Math.min(v0.x, Math.min(v1.x, v2.x));
 		int maxX= (int) (Math.max(v0.x, Math.max(v1.x, v2.x)));// add 1 so it always rounds up
 		int minY= (int) Math.min(v0.y, Math.min(v1.y, v2.y));
@@ -160,9 +164,6 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 
 					if(num>=f) {
 						Vector3 p3d= reData.a;
-
-
-
 						//setRGB(i,j , Color.red);
 
 						double wc0 = edgeFunction(obj.camCords[1], obj.camCords[2],p3d ); 
@@ -193,12 +194,14 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 			rowW2 += b01;
 		}
 	}
+
 	private void setSample(int x, int y, Color color, double depth) {// Sets the sample buffer and depth buffer
 		if(   x >=0 && x< sD.x * sampleSize &&y >=0 && y< sD.y * sampleSize && depthBuffer[x][y]> depth){
 			depthBuffer[x][y] = depth;
 			setRGB(x, y, color);
 		}
 	}
+
 	//2D cross product
 	double edgeFunction(double[] v1,double[] v2, double[] p) 
 	{ return (p[0] - v1[0]) * (v2[1] - v1[1]) - (p[1] - v1[1]) * (v2[0] - v1[0]); } 
@@ -210,7 +213,6 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 	//3D Cross product's Magnitude /2 
 	double edgeFunction(Vector3 v1,Vector3 v2, Vector3 p)
 	{ 
-
 		// This works because the magnitude of the Cross produce is the area of a parrallelagram with the vectors
 		// If you divide a parrallegram by 2 you get a triangle
 		// Do this in 3d and you have the 3d area of a triangle
@@ -220,8 +222,6 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 		double j = (one.z*two.x - one.x *two.z ) ;
 		double k = (one.x*two.y - one.y *two.x ) ;
 		return Sqrt(i* i + j * j + k *k) / 2 ;
-
-
 	} 
 
 	public void displayBack() {// Displays back buffer
@@ -249,8 +249,6 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 		app.setLocationRelativeTo(null);
 		app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		app.setVisible(true);
-
-
 	}
 
 	void init() {//initializes everything
@@ -284,7 +282,6 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 		for(int i = 0; i < world.size();i++) {
 			ArrayList<Triangle> list = world.get(i).loadedShapes;
 			for (int objID = 0; objID < list.size();objID++) {
-
 				//list.get(objID).getNormal().Print();
 				Vector2[] cords = new Vector2[list.get(objID).Cords.length];
 
@@ -304,23 +301,11 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 						cords[j]=  result;
 						if(list.get(objID).camCords[j].x - CPos.x >f &&cords[j].x >=0 && cords[j].x < sD.x) {
 							stuf++;
-
 						}
-
-
-
 					}
 					if(stuf >0) {
-
 						drawTriangle(cords[0] , cords[1], cords[2] , list.get(objID));
 					}
-
-
-
-
-
-
-
 				}
 			}
 		}
@@ -332,11 +317,11 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 		g2.drawString("Ore X : " + COre.x+" Y : " + COre.y+" Z : " + COre.z, 40, 80);
 		long delay = System.currentTimeMillis()-startTime;
 		g2.drawString("Delay : " + delay + " FPS: " + (1000/delay), 40, 110);
-
 	}
-	Vector3 PixelPos3D = new Vector3 (f,0,0) ;
-	public void getPixelOnObj(double x, double tempY, Triangle obj, ReturnData re ) {
 
+	Vector3 PixelPos3D = new Vector3 (f,0,0) ;
+
+	public void getPixelOnObj(double x, double tempY, Triangle obj, ReturnData re ) {
 		PixelPos3D.set(f,tempY,x) ;
 		// The 2d plane dist , 
 
@@ -349,9 +334,11 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 		vre.muti(num);
 		vre.add(CPos);
 		re.setReturnData( vre, num/ magnitude) ;
-	} 
+	}
+
 	Vector3 pointNormal= new Vector3(0,0,0);
 	Vector3 centerFront = (new Vector3 (CPos.x+f, CPos.y , CPos.z));
+
 	public Vector2 Prespective(Vector3 point) {/*
 		//Triangle similarity To solve projection on 2D plane given line
 		//TODO Use Line and Plane Intersection instead of Triangle Simularity to get Pixel
@@ -404,24 +391,23 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 	public void keyPressed(KeyEvent e) {
 		held[e.getKeyCode()]= true;
 	}
+
 	double intersect(Vector3 p , Vector3 v , Vector3 n , Vector3 d) // point , Vector3 , plane point , direction (ikr why did this dumbass place n as the point and not the normal. Apparently this dumbass is me)
 	{
 		return -(d.dot(p) - n.dot(d)) / d.dot(v);// Line plane intersection
 	}
+
 	@Override
 	public void keyReleased(KeyEvent e) {
-
 		held[e.getKeyCode()]= false;
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
-
 		double change = 1;
 		if( held[KeyEvent.VK_CONTROL]) {
 			change = 3;
-
 		}
 		if(held[KeyEvent.VK_LEFT]) {
 			COre.x = (COre.x + 355)%360;
@@ -464,6 +450,7 @@ public class Main extends JPanel implements KeyListener ,ActionListener {
 
 		repaint();
 	}
+
 	@Override
 	public void keyTyped(KeyEvent e) {
 		// TODO Auto-generated method stub

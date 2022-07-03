@@ -47,8 +47,6 @@ public class worldObject {
 					if(con[0].trim().equals("map_Kd")) {
 						fln = content.split("Kd ")[1].trim();
 					}
-					
-				
 			}
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
@@ -116,13 +114,9 @@ public class worldObject {
 									loadedTexCords.get(Textureindexes[i+1]),
 									loadedTexCords.get(Textureindexes[i+2]),
 									imageIDs.get(curObj.trim())
-									
 									));
 						}
-
 				}
-				
-				
 			}
 			buffReader.close();
 			fileReader.close();
@@ -134,6 +128,7 @@ public class worldObject {
 		System.out.println(loadedVectors.size());
 		return true;
 	}
+
 	public ArrayList<Triangle> getShapes() {
 		return loadedShapes;
 	}

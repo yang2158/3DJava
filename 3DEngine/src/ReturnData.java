@@ -1,4 +1,3 @@
-
 public class ReturnData {
 	Vector3 a;
 	double dist;
@@ -8,5 +7,4 @@ public class ReturnData {
 		dist = dists;
 		// TODO Auto-generated constructor stub
 	}
-
 }
