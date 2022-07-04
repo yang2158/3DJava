@@ -260,32 +260,32 @@ public class Main extends JPanel implements KeyListener, ActionListener {
 		blankBuffer();
 		// DO STUFF HERE
 		g.setColor(Color.red);
-		for (int i = 0; i < world.size(); i++) {
-			ArrayList<Triangle> list = world.get(i).loadedShapes;
-			for (int objID = 0; objID < list.size(); objID++) {
+		for (worldObject obj : world) {
+			ArrayList<Triangle> list = obj.loadedShapes;
+			for (Triangle tri : list) {
 				//list.get(objID).getNormal().Print();
-				Vector2[] cords = new Vector2[list.get(objID).Cords.length];
+				Vector2[] cords = new Vector2[tri.Cords.length];
 
 				int stuf = 0;
-				if (list.get(objID).Cords.length == 3) {
+				if (tri.Cords.length == 3) {
 					int j;
-					for (j = 0; j < list.get(objID).Cords.length; j++) {
+					for (j = 0; j < tri.Cords.length; j++) {
 						//rotatedProduct= quaternion.rotate(CPos, list.get(objID).Cords[j], quaternion.degToRadian(-COre.x), quaternion.degToRadian(COre.y));
-						Vector3 pos = list.get(objID).Cords[j].clone();
-						pos = quaternion.rotate(zero, pos, quaternion.degToRadian(-world.get(i).rot.x), quaternion.degToRadian(world.get(i).rot.y));
-						pos.add(world.get(i).pos);
+						Vector3 pos = tri.Cords[j].clone();
+						pos = quaternion.rotate(zero, pos, quaternion.degToRadian(-obj.rot.x), quaternion.degToRadian(obj.rot.y));
+						pos.add(obj.pos);
 
-						list.get(objID).camCords[j] = quaternion.rotate(CPos, pos, quaternion.degToRadian(-COre.x), quaternion.degToRadian(COre.y));
-						list.get(objID).camnormal[j] = quaternion.rotate(zero, list.get(objID).normal[j], quaternion.degToRadian(-world.get(i).rot.x), quaternion.degToRadian(world.get(i).rot.y));
-						Vector2 result = Prespective(list.get(objID).camCords[j]);
+						tri.camCords[j] = quaternion.rotate(CPos, pos, quaternion.degToRadian(-COre.x), quaternion.degToRadian(COre.y));
+						tri.camnormal[j] = quaternion.rotate(zero, tri.normal[j], quaternion.degToRadian(-obj.rot.x), quaternion.degToRadian(obj.rot.y));
+						Vector2 result = Prespective(tri.camCords[j]);
 
 						cords[j] = result;
-						if (list.get(objID).camCords[j].x - CPos.x > f && cords[j].x >= 0 && cords[j].x < sD.x) {
+						if (tri.camCords[j].x - CPos.x > f && cords[j].x >= 0 && cords[j].x < sD.x) {
 							stuf++;
 						}
 					}
 					if (stuf > 0) {
-						drawTriangle(cords[0], cords[1], cords[2], list.get(objID));
+						drawTriangle(cords[0], cords[1], cords[2], tri);
 					}
 				}
 			}
