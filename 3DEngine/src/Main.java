@@ -397,11 +397,9 @@ public class Main extends JPanel implements KeyListener, ActionListener {
 		}
 		if (held[KeyEvent.VK_UP]) {
 			COre.y = (COre.y + 355) % 360;
-			;
 		}
 		if (held[KeyEvent.VK_DOWN]) {
 			COre.y = (COre.y + 365) % 360;
-			;
 		}
 		if (held[KeyEvent.VK_R]) {
 			plane.pos.z += 3;
@@ -410,7 +408,6 @@ public class Main extends JPanel implements KeyListener, ActionListener {
 			plane.rot.x = (plane.rot.x + 355) % 360;
 		}
 		if (held[KeyEvent.VK_W]) {
-
 			CPos.add(quaternion.rotate(zero, new Vector3(change, 0, 0), quaternion.degToRadian(COre.x), 0));
 		}
 		if (held[KeyEvent.VK_A]) {
@@ -420,15 +417,12 @@ public class Main extends JPanel implements KeyListener, ActionListener {
 			CPos.add(quaternion.rotate(zero, new Vector3(0, 0, change), quaternion.degToRadian(COre.x), 0));
 		}
 		if (held[KeyEvent.VK_S]) {
-
 			CPos.add(quaternion.rotate(zero, new Vector3(-change, 0, 0), quaternion.degToRadian(COre.x), 0));
 		}
 		if (held[KeyEvent.VK_SPACE]) {
-
 			CPos.add(quaternion.rotate(zero, new Vector3(0, change, 0), quaternion.degToRadian(COre.x), 0));
 		}
 		if (held[KeyEvent.VK_SHIFT]) {
-
 			CPos.add(quaternion.rotate(zero, new Vector3(0, -change, 0), quaternion.degToRadian(COre.x), 0));
 		}
 
