@@ -27,6 +27,7 @@ public class Main extends JPanel implements KeyListener, ActionListener {
 	//SETTINGS
 	public int sampleSize = 2;
 	public String loadOBJ_FILENAME = "Elf01_posed.obj"; // loads a obj file with it's mtl file
+	public boolean backfaceCulling = true;              // whether to use back-face culling
 	public double f = 1;                                // Plane / Intersection / Close clipping plane
 	public Vector3 CPos = new Vector3(0, 0, -150);      //Starting positions
 	public Vector3 COre = new Vector3(90, 0, 0);        // Starting rotation
@@ -284,7 +285,8 @@ public class Main extends JPanel implements KeyListener, ActionListener {
 							stuf++;
 						}
 					}
-					if (stuf > 0) {
+					Vector3 n = tri.camCords[1].clone().sub(tri.camCords[0]).crossProduct(tri.camCords[2].clone().sub(tri.camCords[0]));
+					if (stuf > 0 && (!backfaceCulling || (n.dot(tri.camCords[0].clone().sub(CPos)) >= 0))) {
 						drawTriangle(cords[0], cords[1], cords[2], tri);
 					}
 				}
