@@ -45,6 +45,11 @@ public class worldObject {
 				}
 				if (con[0].trim().equals("map_Kd")) {
 					fln = content.split("Kd ")[1].trim();
+					if (System.getProperty("os.name").contains("Windows")) {
+						fln = fln.replace("/", "\\");
+					} else {
+						fln = fln.replace("\\", "/");
+					}
 				}
 			}
 		} catch (FileNotFoundException e1) {
